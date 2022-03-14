@@ -1,14 +1,26 @@
-Yes Strong WarmAir Warm Sunny
-No Weak WarmAir Warm Sunny
-Yes Strong WarmAir Warm Cloudy
-Yes Strong WarmAir Moderate Rainy
-No Strong ColdAir Cold Cloudy
-No Weak ColdAir Cold Rainy
-No Weak ColdAir Cold Sunny
-Yes Strong WarmAir Moderate Sunny
-Yes Strong ColdAir Cold Sunny
-No Strong ColdAir Moderate Rainy
-Yes Weak ColdAir Moderate Sunny
-Yes Weak WarmAir Moderate Sunny
-Yes Strong ColdAir Warm Sunny
-No Weak WarmAir Moderate Rainy
+#Fishing
+
+#attributes
+#Wind: Strong,Weak
+#Water: Warm,Moderate,Cold
+#Air: WarmAir, CoolAir
+#Sky: Sunny,Cloudy,Rainy
+
+#target
+#Fish: Yes,No
+
+#data
+Strong,WarmAir,Warm,Sunny,Yes
+Weak,WarmAir,Warm,Sunny,No
+Strong,WarmAir,Warm,Cloudy,Yes
+Strong,WarmAir,Moderate,Rainy,Yes
+Strong,ColdAir,Cold,Rainy,No
+Weak,ColdAir,Cold,Rainy,No
+Weak,ColdAir,Cold,Sunny,No
+Strong,WarmAir,Moderate,Sunny,Yes
+Strong,ColdAir,Cold,Sunny,Yes
+Strong,ColdAir,Moderate,Rainy,No
+Weak,ColdAir,Moderate,Sunny,Yes
+Weak,WarmAir,Moderate,Sunny,Yes
+Strong,ColdAir,Warm,Sunny,Yes
+Weak,WarmAir,Moderate,Rainy,No

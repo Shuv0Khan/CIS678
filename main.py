@@ -1,5 +1,6 @@
 from project1 import data_visualization_analysis
 from project2 import project
+from project3 import decision_tree
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -17,7 +18,13 @@ if __name__ == '__main__':
     # project.gaussian_nb()
 
     # Part 2
-    project.textual_data('textMsgs.data')
+    # project.textual_data('textMsgs.data')
+
+    """
+    Project 3:
+    """
+    decision_tree.main()
+
 
 
 
