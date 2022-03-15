@@ -1,0 +1,16 @@
+#Treatment (HW #7)
+
+#attributes
+#Pulse: Normal,Rapid
+#BP: Normal,High
+#Age: <25,25-40,>40
+
+#target
+#Treat: Positive,Negative
+
+#data
+Normal,Normal,<25,Positive
+Normal,Normal,25-40,Positive
+Rapid,Normal,>40,Positive
+Normal,High,>40,Negative
+Rapid,High,>40,Negative

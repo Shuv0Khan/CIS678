@@ -1,9 +1,9 @@
 import math
+from collections import defaultdict
+from queue import Queue
 
 import pandas as pd
-from collections import defaultdict
 from pyvis.network import Network
-from queue import Queue
 
 
 class DecisionTree:
@@ -130,7 +130,8 @@ class DecisionTree:
 
     def __tree_at(self, node: dict, attrs: list):
         """
-        Uses Depth-first-search approach to build the tree recursively using ID3 algorithm.
+        Uses Depth-first-search approach to build the tree
+        recursively using ID3 algorithm.
         :param node: the current node to split
         :return:
         """
@@ -155,7 +156,8 @@ class DecisionTree:
         self.__tree = {
             'data': [i for i in range(len(self.__data))],
             'S': {
-                'cls_freq': self.__data.groupby(cls_col_name).count()[attr_names[0]].to_dict()
+                'cls_freq': self.__data.groupby(cls_col_name).count()[
+                    attr_names[0]].to_dict()
             },
             'split': {'attr': None, 'gain': None},
             'branches': None,
@@ -195,9 +197,10 @@ class DecisionTree:
             else:
                 total = len(node['data'])
                 cls_col = list(self.__cls.keys())[0]
-                counts = self.__data.loc[node['data']].groupby(cls_col).count()[self.__data.columns[0]].to_dict()
+                counts = self.__data.loc[node['data']].groupby(cls_col).count()[
+                    self.__data.columns[0]].to_dict()
                 for key in counts:
-                    counts[key] = f"Prob: {counts[key]/total:.3f}"
+                    counts[key] = f"Prob: {counts[key] / total:.3f}"
 
                 print(f'Not predictable: {counts}')
                 return
@@ -210,7 +213,9 @@ class DecisionTree:
 
         node = self.__tree
         node['id'] = 1
-        title = f"{node['S']['cls_freq']} || {node['S']['entropy']:.3f} || data: {[i + 1 for i in node['data']]}"
+        title = f"{node['S']['cls_freq']} || " \
+                f"{node['S']['entropy']:.3f} || " \
+                f"data: {[i + 1 for i in node['data']]}"
         net.add_node(1, label=node['label'], title=title)
 
         q = Queue()
@@ -230,7 +235,9 @@ class DecisionTree:
                 for key in node['branches'].keys():
                     n = node['branches'][key]
                     n['id'] = uid + i
-                    title = f"{n['S']['cls_freq']} || {n['S']['entropy']:.3f} || data: {[i + 1 for i in n['data']]}"
+                    title = f"{n['S']['cls_freq']} || " \
+                            f"{n['S']['entropy']:.3f} || " \
+                            f"data: {[i + 1 for i in n['data']]}"
                     net.add_node(uid + i, label=n['label'], title=title)
                     net.add_edge(uid, uid + i)
                     i += 1

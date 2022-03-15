@@ -1,9 +1,10 @@
-from project3.decision_tree import DecisionTree, pre_processing
 from collections import defaultdict
+
+import graphviz
 import pandas as pd
 from sklearn import tree
-import matplotlib.pyplot as plt
-import graphviz
+
+from project3.decision_tree import DecisionTree, pre_processing
 
 
 def custom_dtree(filename: str):
