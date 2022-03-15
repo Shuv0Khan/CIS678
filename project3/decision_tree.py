@@ -126,7 +126,7 @@ class DecisionTree:
                 max_freq = freq
                 label = key
 
-        node['label'] = label
+        node['label'] = f"{node['label']} || {label}"
 
     def __tree_at(self, node: dict, attrs: list):
         """
@@ -141,6 +141,12 @@ class DecisionTree:
         self.__split(node, attrs)
 
         # TODO: remove split attr from list and recursive call
+        new_attrs = attrs.copy()
+        new_attrs.remove(node['split']['attr'])
+
+        if node['branches'] is not None:
+            for key in node['branches']:
+                self.__tree_at(node['branches'][key], new_attrs)
 
     def train(self):
         cls_col_name = list(self.__cls.keys())[0]
@@ -160,15 +166,51 @@ class DecisionTree:
 
         self.__tree_at(node=self.__tree, attrs=attr_names)
 
+    def predict(self, attr_vals: dict):
+        node = self.__tree
+
+        predict_vals = dict()
+        for key in attr_vals:
+            predict_vals[key.upper()] = attr_vals[key].upper()
+
+        while True:
+            if node['branches'] is None:
+                print(f'{node["label"]}')
+                return
+
+            print(f"{node['label']} -> ", end='')
+
+            split = node['split']['attr']
+            if split not in predict_vals:
+                print(f'{split} not in given values {attr_vals.keys()}')
+                return
+
+            attr_val = predict_vals[split]
+
+            for key in node['branches']:
+                n = node['branches'][key]
+                if n['label'].startswith(f"{split}={attr_val}"):
+                    node = n
+                    break
+            else:
+                total = len(node['data'])
+                cls_col = list(self.__cls.keys())[0]
+                counts = self.__data.loc[node['data']].groupby(cls_col).count()[self.__data.columns[0]].to_dict()
+                for key in counts:
+                    counts[key] = f"Prob: {counts[key]/total:.3f}"
+
+                print(f'Not predictable: {counts}')
+                return
+
     def plot_tree(self):
-        print(self.__tree)
+        # print(self.__tree)
         net = Network()
         net.height = '100%'
         net.width = '100%'
 
         node = self.__tree
         node['id'] = 1
-        title = f"{node['S']['cls_freq']} || {node['S']['entropy']:.3f} || data: {[i+1 for i in node['data']]}"
+        title = f"{node['S']['cls_freq']} || {node['S']['entropy']:.3f} || data: {[i + 1 for i in node['data']]}"
         net.add_node(1, label=node['label'], title=title)
 
         q = Queue()
@@ -188,25 +230,23 @@ class DecisionTree:
                 for key in node['branches'].keys():
                     n = node['branches'][key]
                     n['id'] = uid + i
-                    title = f"{n['S']['cls_freq']} || {n['S']['entropy']:.3f} || data: {[i+1 for i in n['data']]}"
+                    title = f"{n['S']['cls_freq']} || {n['S']['entropy']:.3f} || data: {[i + 1 for i in n['data']]}"
                     net.add_node(uid + i, label=n['label'], title=title)
                     net.add_edge(uid, uid + i)
                     i += 1
                     q.put(n)
 
 
-
-
-def main():
+def pre_processing(filepath: str) -> tuple[pd.DataFrame, dict]:
     data = []
     attrs = defaultdict(list)
-    with open('fishing.data', mode='r') as fin:
+    with open(filepath, mode='r') as fin:
         for line in fin:
             line = line.strip()
 
             if line.startswith("#attributes") or line.startswith("#target"):
                 for l in fin:
-                    l = l.strip()
+                    l = l.strip().upper()
                     if len(l) == 0:
                         break
                     parts = l.split(":")
@@ -214,7 +254,7 @@ def main():
 
             elif line.startswith("#data"):
                 for l in fin:
-                    l = l.strip()
+                    l = l.strip().upper()
                     if len(l) == 0:
                         break
                     parts = l.split(",")
@@ -224,6 +264,4 @@ def main():
     df.columns = list(attrs.keys())
     print(df.info())
 
-    dt = DecisionTree(df, attrs)
-    dt.train()
-    dt.plot_tree()
+    return df, attrs

@@ -1,6 +1,6 @@
 from project1 import data_visualization_analysis
 from project2 import project
-from project3 import decision_tree
+from project3 import project as p3
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     """
     Project 3:
     """
-    decision_tree.main()
+    p3.run()
 
 
 

@@ -2,8 +2,8 @@
 
 #attributes
 #Wind: Strong,Weak
+#Air: WarmAir,ColdAir
 #Water: Warm,Moderate,Cold
-#Air: WarmAir, CoolAir
 #Sky: Sunny,Cloudy,Rainy
 
 #target

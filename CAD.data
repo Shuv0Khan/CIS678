@@ -1,0 +1,30 @@
+#CAD
+
+#attributes
+#Cholesterol: Normal,Borderline,High
+#Gender: M,F
+
+#target
+#CAD: Yes,No
+
+#data
+Normal,M,No
+Normal,F,No
+Normal,F,No
+Borderline,M,No
+Borderline,M,No
+Borderline,M,Yes
+Borderline,F,No
+Borderline,M,No
+Borderline,F,No
+Borderline,F,No
+Borderline,M,No
+Borderline,M,No
+Borderline,M,No
+High,M,No
+High,M,Yes
+High,F,Yes
+High,F,Yes
+High,F,No
+High,F,No
+High,M,Yes
