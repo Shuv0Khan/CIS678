@@ -1,0 +1,16 @@
+#Weight
+
+#attributes
+#Weight: Numeric
+
+#target
+#Oracle: A,B,C
+
+#data
+3900,A
+300,B
+1500,B
+1200,A
+4450,C
+5000,C
+3000,A

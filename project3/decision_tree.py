@@ -53,7 +53,7 @@ class DecisionTree:
 
         return entropy
 
-    def __gain_of(self, node_entropy, col, col_cls_name, df):
+    def __gain_of_categorical(self, node_entropy, col, col_cls_name, df):
         S = defaultdict(dict)
         d = df.groupby(by=[col, col_cls_name]).count().iloc[:, 0]
 
@@ -67,9 +67,51 @@ class DecisionTree:
             attr_total = d.loc[key].sum()
             total = d.sum()
             S[key]['entropy'] = self.__entropy_of(cls_freq)
+            S[key]['data'] = [i for i in df[df[col] == key].index]
             gain -= (S[key]['entropy'] * attr_total / total)
 
         return S, gain
+
+    def __gain_of_numerical(self, node_entropy, col, col_cls_name, df: pd.DataFrame):
+        sdf = df.sort_values(col)
+        total = len(sdf)
+
+        max_gain = 0
+        max_gain_split = 0
+        S = defaultdict(dict)
+        indices = sdf.index.tolist()
+        for i in range(1, total):
+            if sdf[col_cls_name].loc[indices[i - 1]] != sdf[col_cls_name].loc[indices[i]]:
+                split_at = (sdf[col].loc[indices[i - 1]] + sdf[col].loc[indices[i]]) / 2
+
+                lower_cls_freq = sdf[sdf[col] < split_at].groupby(col_cls_name).count().iloc[:, 0].to_dict()
+                lower_entropy = self.__entropy_of(lower_cls_freq)
+
+                upper_cls_freq = sdf[sdf[col] > split_at].groupby(col_cls_name).count().iloc[:, 0].to_dict()
+                upper_entropy = self.__entropy_of(upper_cls_freq)
+
+                gain = node_entropy - (i / total * lower_entropy + (total - i) / total * upper_entropy)
+
+                if gain > max_gain:
+                    max_gain = gain
+                    max_gain_split = split_at
+
+                    S = defaultdict(dict)
+                    S[f'[<{split_at}]'] = lower_cls_freq
+                    S[f'[<{split_at}]']['entropy'] = lower_entropy
+                    S[f'[<{split_at}]']['data'] = sdf[sdf[col] < split_at].index.to_list()
+
+                    S[f'[>{split_at}]'] = upper_cls_freq
+                    S[f'[>{split_at}]']['entropy'] = upper_entropy
+                    S[f'[>{split_at}]']['data'] = sdf[sdf[col] > split_at].index.to_list()
+
+        return S, max_gain
+
+    def __gain_of(self, node_entropy, col, col_cls_name, df):
+        if pd.api.types.is_string_dtype(df[col]):
+            return self.__gain_of_categorical(node_entropy, col, col_cls_name, df)
+        else:
+            return self.__gain_of_numerical(node_entropy, col, col_cls_name, df)
 
     def __split(self, node: dict, attrs: list):
         """
@@ -100,8 +142,9 @@ class DecisionTree:
         for key in max_S:
             cls_freq = max_S[key].copy()
             cls_freq.pop('entropy')
+            cls_freq.pop('data')
             n = {
-                'data': [i for i in df[df[split_col] == key].index],
+                'data': max_S[key]['data'], #[i for i in df[df[split_col] == key].index],
                 'S': {
                     'cls_freq': cls_freq,
                     'entropy': max_S[key]['entropy']
@@ -141,7 +184,6 @@ class DecisionTree:
 
         self.__split(node, attrs)
 
-        # TODO: remove split attr from list and recursive call
         new_attrs = attrs.copy()
         new_attrs.remove(node['split']['attr'])
 
@@ -243,32 +285,15 @@ class DecisionTree:
                     i += 1
                     q.put(n)
 
+    def extract_rules(self):
+        self.__dfs_rules(node=self.__tree, rule='if')
 
-def pre_processing(filepath: str) -> tuple[pd.DataFrame, dict]:
-    data = []
-    attrs = defaultdict(list)
-    with open(filepath, mode='r') as fin:
-        for line in fin:
-            line = line.strip()
+    def __dfs_rules(self, node, rule):
+        if node['branches'] is None:
+            parts = rule.split('||')
+            print(f'{parts[0]} then {parts[1].split()[0]}')
+            return
 
-            if line.startswith("#attributes") or line.startswith("#target"):
-                for l in fin:
-                    l = l.strip().upper()
-                    if len(l) == 0:
-                        break
-                    parts = l.split(":")
-                    attrs[parts[0][1:]] = parts[1].strip().split(",")
-
-            elif line.startswith("#data"):
-                for l in fin:
-                    l = l.strip().upper()
-                    if len(l) == 0:
-                        break
-                    parts = l.split(",")
-                    data.append(parts)
-
-    df = pd.DataFrame(data)
-    df.columns = list(attrs.keys())
-    print(df.info())
-
-    return df, attrs
+        for key in node['branches']:
+            n = node['branches'][key]
+            self.__dfs_rules(node=n, rule=f'{rule} {n["label"].replace("=","==")} and')

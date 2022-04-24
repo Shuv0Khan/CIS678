@@ -4,7 +4,51 @@ import graphviz
 import pandas as pd
 from sklearn import tree
 
-from project3.decision_tree import DecisionTree, pre_processing
+from project3.decision_tree import DecisionTree
+
+
+def pre_processing(filepath: str) -> tuple[pd.DataFrame, dict]:
+    data = []
+    attrs = defaultdict(list)
+    dtypes = dict()
+    with open(filepath, mode='r') as fin:
+        for line in fin:
+            line = line.strip()
+
+            if line.startswith("#attributes") or line.startswith("#target"):
+                for l in fin:
+                    l = l.strip().upper()
+                    if len(l) == 0:
+                        break
+                    parts = l.split(":")
+                    attrs[parts[0][1:]] = parts[1].strip().split(",")
+
+                    if parts[1].strip() == 'NUMERIC':
+                        dtypes[parts[0][1:]] = 'float'
+                    else:
+                        dtypes[parts[0][1:]] = 'string'
+
+            elif line.startswith("#data"):
+                for l in fin:
+                    l = l.strip().upper()
+                    if len(l) == 0:
+                        break
+                    parts = l.split(",")
+                    data.append(parts)
+
+    '''Load data into DataFrame'''
+    df = pd.DataFrame(data)
+
+    '''Rename columns with attribute names'''
+    df.columns = list(attrs.keys())
+
+    '''Convert to best possible dtypes'''
+    # df = df.convert_dtypes()
+    df = df.astype(dtypes)
+
+    print(df.info())
+
+    return df, attrs
 
 
 def custom_dtree(filename: str):
@@ -38,14 +82,18 @@ def custom_dtree(filename: str):
         dt.predict(inp)
         q = input('Press "q" to quit, any key to continue: ')
 
+    print('\n\nStep 4: Rule Extraction.')
+    dt.extract_rules()
+
 
 def load_and_encode(filepath: str) -> tuple[pd.DataFrame, dict]:
     df, attrs = pre_processing(filepath)
 
     for col in attrs.keys():
         series = df[col].tolist()
-        for i in range(len(series)):
-            series[i] = attrs[col].index(series[i])
+        if pd.api.types.is_string_dtype(df[col]):
+            for i in range(len(series)):
+                series[i] = attrs[col].index(series[i])
         df[f'{col}_encoded'] = series
 
     return df, attrs
@@ -64,11 +112,11 @@ def sklearn_dtree(filename: str):
     print('\nStep 2: Training...', end='')
     x = []
     for i in df.index:
-        x.append(df.iloc[i, len(cols):2*len(cols)-1].tolist())
+        x.append(df.iloc[i, len(cols):2 * len(cols) - 1].tolist())
 
     y = df[df.columns[-1]].tolist()
 
-    dt = tree.DecisionTreeClassifier()
+    dt = tree.DecisionTreeClassifier(criterion='entropy')
     dt = dt.fit(x, y)
     print('Done')
 
@@ -96,7 +144,12 @@ def sklearn_dtree(filename: str):
         q = input('Press "q" to quit, any key to continue: ')
 
 
+def bagging(filename: str):
+    pass
+
+
 def run():
     filename = input('Enter dataset name: ')
     custom_dtree(filename)
     sklearn_dtree(filename)
+    bagging(filename)
